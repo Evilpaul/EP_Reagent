@@ -7,27 +7,27 @@ local PlayerTable = {
 			{["item"] = 44614, ["amount"] = 0},   -- Starleaf Seed
 			{["item"] = 44605, ["amount"] = 20},  -- Wild Spineleaf
 
-			{["item"] = 43007, ["amount"] = 10),  -- Northern Spices (test for cooking award cost)
+			{["item"] = 43007, ["amount"] = 10},  -- Northern Spices (test for cooking award cost)
 			{["item"] = 43236, ["amount"] = 20},  -- Star's Sorrow (test for gold and honor points)
-			{["item"] = 45706, ["amount"] = 1),   -- Commendation of Bravery (test for arena points)
-			{["item"] = 42115, ["amount"] = 1),   -- Deadly Gladiator's Band of Victory(test for honor points)
-			{["item"] = 40711, ["amount"] = 1),   -- Idol of Lush Moss (test for Emblem of Heroism)
-			{["item"] = 40721, ["amount"] = 1),   -- Hammerhead Sharkskin Cloak (test for Emblem of Valor)
-			{["item"] = 45087, ["amount"] = 1),   -- Runed Orb (test for Emblem of Conquest)
-			{["item"] = 44903, ["amount"] = 1),   -- Titan-forged Chain Helm of Triumph (test for Wintergrasp Mark of Honor)
-			{["item"] = 38359, ["amount"] = 1),   -- Goblin Repetition Reducer (test for Venture Coin)
-			{["item"] = 23572, ["amount"] = 1),   -- Primal Nether (test for Badge of Justice)
-			{["item"] = 44115, ["amount"] = 1),   -- Wintergrasp Commendation (test for Stone Keeper's Shard)
-			{["item"] = 42225, ["amount"] = 1),   -- Dragon's Eye(test for Dalaran Jewelcrafter's Token)
-			{["item"] = 45725, ["amount"] = 1),   -- Argent Hippogryph(test for Champion's Seal)
-			{["item"] = 31852, ["amount"] = 10),  -- Major Combat Healing Potion (test for EotS Token)
-			{["item"] = 29465, ["amount"] = 1)    -- Black Battlestrider (test for AB, WSG and AV tokens)
+			{["item"] = 45706, ["amount"] = 1},   -- Commendation of Bravery (test for arena points)
+			{["item"] = 42115, ["amount"] = 1},   -- Deadly Gladiator's Band of Victory(test for honor points)
+			{["item"] = 40711, ["amount"] = 1},   -- Idol of Lush Moss (test for Emblem of Heroism)
+			{["item"] = 40721, ["amount"] = 1},   -- Hammerhead Sharkskin Cloak (test for Emblem of Valor)
+			{["item"] = 45087, ["amount"] = 1},   -- Runed Orb (test for Emblem of Conquest)
+			{["item"] = 44903, ["amount"] = 1},   -- Titan-forged Chain Helm of Triumph (test for Wintergrasp Mark of Honor)
+			{["item"] = 38359, ["amount"] = 1},   -- Goblin Repetition Reducer (test for Venture Coin)
+			{["item"] = 23572, ["amount"] = 1},   -- Primal Nether (test for Badge of Justice)
+			{["item"] = 44115, ["amount"] = 1},   -- Wintergrasp Commendation (test for Stone Keeper's Shard)
+			{["item"] = 42225, ["amount"] = 1},   -- Dragon's Eye(test for Dalaran Jewelcrafter's Token)
+			{["item"] = 45725, ["amount"] = 1},   -- Argent Hippogryph(test for Champion's Seal)
+			{["item"] = 31852, ["amount"] = 10},  -- Major Combat Healing Potion (test for EotS Token)
+			{["item"] = 29465, ["amount"] = 1}    -- Black Battlestrider (test for AB, WSG and AV tokens)
 		},
 		["Evilpaul"] = {
 			{["item"] = 44615, ["amount"] = 40},  -- Devout Candle
 			{["item"] = 33445, ["amount"] = 20}   -- Honeymint Tea
 		},
-		["Evilundead"] = {
+		["Evilundead"] = { -- Warrior's don't need anything... (empty table check)
 		}
 
 		--[[
@@ -169,20 +169,24 @@ function EPReagent:RestockFromVendor(reagentName, quantityNeeded)
 	end;
 
 	-- vendor does not sell the item, quit out
-	if itemName ~= reagentName then
-		return;
-	end;
+	if itemName ~= reagentName then return; end;
 
 	local itemLink = GetMerchantItemLink(counter);
 
-	if isUsable then
-		self:MessageOutput(string.format("%s can be used by your character", itemLink));
-	else
-		self:MessageOutput(string.format("Your character cannot use %s", itemLink));
+	-- quit out for now, might add something about this later
+	if not isUsable then
+		--self:MessageOutput(string.format("Your character cannot use %s", itemLink));
+		return;
 	end;
 
 	if extendedCost then
 
+		-- purchase of items with other currency is not supported, quit out
+		self:MessageOutput("Purchase using alternative currency is not currently supported");
+		return;
+
+---- DEBUG ----
+--[[
 		local itemValue, eCostItemLink, availableItemLink;
 		local honorPoints, arenaPoints, itemCount = GetMerchantItemCostInfo(counter);
 		local myHonorPoints = GetHonorCurrency();
@@ -192,16 +196,13 @@ function EPReagent:RestockFromVendor(reagentName, quantityNeeded)
 		self:MessageOutput(string.format("User has %d honor points and %d arena points", myHonorPoints, myArenaPoints));
 
 		if itemCount then
-			for i, itemCount do
+			for i = 1, itemCount do
 				_, itemValue, eCostItemLink = GetMerchantItemCostItem(counter, i)
 				availableItemLink = GetItemCount(eCostItemLink);
 				self:MessageOutput(string.format("Other Currency %d is : %d of %s, user has %d available", i, itemValue, eCostItemLink, availableItemLink));
 			end;
 		end;
-
-		-- purchase of items with other currency is not supported, quit out
-		self:MessageOutput("Purchase using alternative currency is not currently supported");
-		return;
+]]--
 	end;
 
 	-- re-evaluate the number needed depending upon how many are sold in a batch
@@ -250,8 +251,10 @@ function EPReagent:CheckSupplies(id, count)
 	local name, currentAmount, requiredAmount;
 	name, _, _, _, _, _, _, _, _, _ = GetItemInfo(id);
 
-	self:MessageOutput("checking on %d amount of %s", count, name);
+	-- may not have the item in cache yet, or might have gotten wrong ID
+	if not name then return; end;
 
+	-- Check how many we need to buy
 	currentAmount = GetItemCount(id);
 	requiredAmount = count - currentAmount;
 
@@ -264,29 +267,14 @@ end;
 function EPReagent:RestockMe()
 	local playerName, _ = UnitName("player");
 
+	-- hmmm, using strings for indexing a table...I'm nasty
 	local test = PlayerTable[playerName];
 
+	-- we have found data for your character
 	if test then
-		self:MessageOutput("we have a go for " .. playerName);
-
-		--for i = 1, # test do
-		--	self:CheckSupplies(test[i].item, test[i].amount);
-		--end;
-	else
-		self:MessageOutput("no table found for " .. playerName);
-	end;
-
-	for k, v in pairs(PlayerTable) do
-		self:MessageOutput("trying to compare against : " .. k);
-		if k == PlayerName then
-			test = v;
-			self:MessageOutput("found match, copying to local");
-			break;
+		for i = 1, # test do
+			self:CheckSupplies(test[i].item, test[i].amount);
 		end;
-	end;
-
-	if not test then
-		self:MessageOutput("still not found table for " .. playerName);
 	end;
 end;
 
