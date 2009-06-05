@@ -1,0 +1,5 @@
+## Interface: 30100
+## Title: EP |cffDAFF8A[Reagent]|r
+## Author: EvilPaul
+## Notes: Automatically restock reagents
+EP_Reagent.lua
