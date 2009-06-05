@@ -3,34 +3,6 @@
 --  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 local PlayerTable = {
-		["Evilalt"] = {
-			{["item"] = 44614, ["amount"] = 0},   -- Starleaf Seed
-			{["item"] = 44605, ["amount"] = 20},  -- Wild Spineleaf
-
-			{["item"] = 43007, ["amount"] = 10},  -- Northern Spices (test for cooking award cost)
-			{["item"] = 43236, ["amount"] = 20},  -- Star's Sorrow (test for gold and honor points)
-			{["item"] = 45706, ["amount"] = 1},   -- Commendation of Bravery (test for arena points)
-			{["item"] = 42115, ["amount"] = 1},   -- Deadly Gladiator's Band of Victory(test for honor points)
-			{["item"] = 40711, ["amount"] = 1},   -- Idol of Lush Moss (test for Emblem of Heroism)
-			{["item"] = 40721, ["amount"] = 1},   -- Hammerhead Sharkskin Cloak (test for Emblem of Valor)
-			{["item"] = 45087, ["amount"] = 1},   -- Runed Orb (test for Emblem of Conquest)
-			{["item"] = 44903, ["amount"] = 1},   -- Titan-forged Chain Helm of Triumph (test for Wintergrasp Mark of Honor)
-			{["item"] = 38359, ["amount"] = 1},   -- Goblin Repetition Reducer (test for Venture Coin)
-			{["item"] = 23572, ["amount"] = 1},   -- Primal Nether (test for Badge of Justice)
-			{["item"] = 44115, ["amount"] = 1},   -- Wintergrasp Commendation (test for Stone Keeper's Shard)
-			{["item"] = 42225, ["amount"] = 1},   -- Dragon's Eye(test for Dalaran Jewelcrafter's Token)
-			{["item"] = 45725, ["amount"] = 1},   -- Argent Hippogryph(test for Champion's Seal)
-			{["item"] = 31852, ["amount"] = 10},  -- Major Combat Healing Potion (test for EotS Token)
-			{["item"] = 29465, ["amount"] = 1}    -- Black Battlestrider (test for AB, WSG and AV tokens)
-		},
-		["Evilpaul"] = {
-			{["item"] = 44615, ["amount"] = 40},  -- Devout Candle
-			{["item"] = 33445, ["amount"] = 20}   -- Honeymint Tea
-		},
-		["Evilundead"] = { -- Warrior's don't need anything... (empty table check)
-		}
-
-		--[[
 		-- Change this to your characters name if you wish to add stuff to a specific character
 		["ExamplePriest"] = {
 			-- Change these item codes to your liking, examples are available further down
@@ -49,7 +21,6 @@ local PlayerTable = {
 			{["item"] = 43235, ["amount"] = 20}   -- Wound Poison VII
 		}
 		-- add more after for as many characters as you like, but remember the commas
-		]]--
 	};
 
 --  ~~~~~~~~~~~~~~~~~~~~
