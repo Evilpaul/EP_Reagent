@@ -195,9 +195,7 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	-- re-evaluate the number needed depending upon how many are sold in a batch
 	local revisedQuantity = math.floor(quantityNeeded / quantity);
 	-- re-evaluate the number per stack depending upon how many are sold in a batch
-	self:MessageOutput(string.format("vendor says stack is %d, item says stack is %d", quantity, stack));
-
-	local revisedStack = stack / quantity;
+	local revisedStack = math.floor(stack / quantity);
 
 	if numAvailable ~= -1 then -- limited number available
 		if numAvailable < revisedQuantity then -- fewer available than required
@@ -230,7 +228,7 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	end;
 
 	-- we need less than a stack
-	if revisedStack > revisedQuantity then
+	if revisedStack > revisedQuantity and revisedQuantity > 0 then
 		BuyMerchantItem(counter, revisedQuantity);
 	end;
 end;
