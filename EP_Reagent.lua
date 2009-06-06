@@ -3,6 +3,22 @@
 --  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 local PlayerTable = {
+-- Change this to your characters name if you wish to add stuff to a specific character
+["Delgadox"] = {
+-- Change these item codes to your liking, examples are available further down
+{["item"] = 44615, ["amount"] = 40}, -- Devout Candle
+{["item"] = 33445, ["amount"] = 0}, -- Honeymint Tea
+{["item"] = 43236, ["amount"] = 0} -- Star's Sorrow
+},
+-- same goes for this one too
+["Easton"] = {
+{["item"] = 17033, ["amount"] = 5}, -- Symbol of Divinity
+{["item"] = 21177, ["amount"] = 400}, -- Symbol of Kings
+},
+-- add more after for as many characters as you like, but remember the commas
+}; 
+
+local PlayerTable = {
 		-- Change this to your characters name if you wish to add stuff to a specific character
 		["ExamplePriest"] = {
 			-- Change these item codes to your liking, examples are available further down
@@ -125,7 +141,7 @@ function EPReagent:PrintMoney(money, itemLink)
 	self:MessageOutput(string.format("Purchasing %d|cffd3c63ag|r %d|cffb0b0b0s|r %d|cffb2734ac|r worth of %s", gold, silver, copper, itemLink));
 end
 
-function EPReagent:RestockFromVendor(reagentName, quantityNeeded)
+function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	local counter = 1;
 	local itemName, price, quantity, numAvailable, isUsable, extendedCost;
 
@@ -179,7 +195,8 @@ function EPReagent:RestockFromVendor(reagentName, quantityNeeded)
 	-- re-evaluate the number needed depending upon how many are sold in a batch
 	local revisedQuantity = math.floor(quantityNeeded / quantity);
 	-- re-evaluate the number per stack depending upon how many are sold in a batch
-	local stack = GetMerchantItemMaxStack(counter);
+	self:MessageOutput(string.format("vendor says stack is %d, item says stack is %d", quantity, stack));
+
 	local revisedStack = stack / quantity;
 
 	if numAvailable ~= -1 then -- limited number available
@@ -219,8 +236,8 @@ function EPReagent:RestockFromVendor(reagentName, quantityNeeded)
 end;
 
 function EPReagent:CheckSupplies(id, count)
-	local name, currentAmount, requiredAmount;
-	name, _, _, _, _, _, _, _, _, _ = GetItemInfo(id);
+	local name, stack, currentAmount, requiredAmount;
+	name, _, _, _, _, _, _, stack, _, _ = GetItemInfo(id);
 
 	-- may not have the item in cache yet, or might have gotten wrong ID
 	if not name then return; end;
@@ -232,7 +249,7 @@ function EPReagent:CheckSupplies(id, count)
 	-- none needed so quit out
 	if requiredAmount < 1 then return; end;
 
-	self:RestockFromVendor(name, requiredAmount);
+	self:RestockFromVendor(name, stack, requiredAmount);
 end;
 
 function EPReagent:RestockMe()
