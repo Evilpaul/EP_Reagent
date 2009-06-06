@@ -3,22 +3,6 @@
 --  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 local PlayerTable = {
--- Change this to your characters name if you wish to add stuff to a specific character
-["Delgadox"] = {
--- Change these item codes to your liking, examples are available further down
-{["item"] = 44615, ["amount"] = 40}, -- Devout Candle
-{["item"] = 33445, ["amount"] = 0}, -- Honeymint Tea
-{["item"] = 43236, ["amount"] = 0} -- Star's Sorrow
-},
--- same goes for this one too
-["Easton"] = {
-{["item"] = 17033, ["amount"] = 5}, -- Symbol of Divinity
-{["item"] = 21177, ["amount"] = 400}, -- Symbol of Kings
-},
--- add more after for as many characters as you like, but remember the commas
-}; 
-
-local PlayerTable = {
 		-- Change this to your characters name if you wish to add stuff to a specific character
 		["ExamplePriest"] = {
 			-- Change these item codes to your liking, examples are available further down

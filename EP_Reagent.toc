@@ -2,7 +2,7 @@
 ## Title: EP |cffDAFF8A[Reagent]|r
 ## Notes: Automatically restock reagents
 ## Author: EvilPaul
-## Version: 1.2
+## Version: 1.3
 ## DefaultState: enabled
 ## X-website: http://github.com/Evilpaul
 ## X-Localizations: enUS
