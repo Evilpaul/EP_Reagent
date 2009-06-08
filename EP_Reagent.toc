@@ -8,4 +8,5 @@
 ## X-Localizations: enUS
 ## X-Category: Inventory
 
+config.lua
 EP_Reagent.lua
