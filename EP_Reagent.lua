@@ -5,18 +5,6 @@ function EPReagent:MessageOutput (inputMessage)
 	ChatFrame1:AddMessage(string.format("|cffDAFF8A[Reagent]|r %s", inputMessage))
 end
 
--- convert raw money amount into gold, silver and copper amount and output to screen
-function EPReagent:PrintMoney(money, itemLink)
-	money = math.floor(money)
-	local copper = money % 100
-	money = math.floor(money / 100)
-	local silver = money % 100
-	money = math.floor(money / 100)
-	local gold = money
-
-	self:MessageOutput(string.format("Purchasing %d|cffd3c63ag|r %d|cffb0b0b0s|r %d|cffb2734ac|r worth of %s", gold, silver, copper, itemLink))
-end
-
 function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	local counter = 1
 	local itemName, price, quantity, numAvailable, isUsable, extendedCost
@@ -37,10 +25,7 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	local itemLink = GetMerchantItemLink(counter)
 
 	-- quit out for now, might add something about this later
-	if not isUsable then
-		--self:MessageOutput(string.format("Your character cannot use %s", itemLink))
-		return
-	end
+	if not isUsable then return end
 
 	if extendedCost then
 
@@ -93,8 +78,16 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 		self:MessageOutput("Cannot afford to purchase required " .. itemLink .. "!")
 		return
 	else
+		-- format the output string depending upon user selected Colour Blind Mode
+		local moneyString
+		if (GetCVar("colorblindMode") == "0") then
+			moneyString = GetCoinTextureString(rawAmount)
+		else
+			moneyString = GetCoinText(rawAmount)
+		end
+
 		-- we can afford to restock reagents
-		self:PrintMoney(totalCost, itemLink)
+		self:MessageOutput(string.format("Purchasing %s worth of %s", moneyString, itemLink))
 	end
 
 	-- we need more than a stack
@@ -126,7 +119,7 @@ function EPReagent:CheckSupplies(id, count)
 	self:RestockFromVendor(name, stack, requiredAmount)
 end
 
-function EPReagent:MERCHANT_SHOW(self, event, ...)
+function EPReagent:RestockMe()
 	local playerName, _ = UnitName("player")
 
 	-- hmmm, using strings for indexing a table...I'm nasty
@@ -141,5 +134,5 @@ function EPReagent:MERCHANT_SHOW(self, event, ...)
 end
 
 EPReagent:SetScript("OnEvent", function(self, event, ...)
-	self[event](self, event, ...)
+	self:RestockMe()
 end)
