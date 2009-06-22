@@ -2,7 +2,6 @@ Short Term
 ==========
 
 - Support buying with other currencies
-- problems with buying lots? check only buy up to 1 stack worth at a time (should be ok, I think)
 - Tidy up the output string for addition of multiple currencies
 - split out calculation of:
 	- got enough gold

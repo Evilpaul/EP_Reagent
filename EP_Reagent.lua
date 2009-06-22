@@ -1,8 +1,43 @@
 local EPReagent = CreateFrame("Frame")
 EPReagent:RegisterEvent("MERCHANT_SHOW")
+EPReagent:RegisterEvent("PLAYER_LOGIN")
 
-function EPReagent:MessageOutput (inputMessage)
+local playerTable = {}
+
+function EPReagent:MessageOutput(inputMessage)
 	ChatFrame1:AddMessage(string.format("|cffDAFF8A[Reagent]|r %s", inputMessage))
+end
+
+function EPReagent:CheckHonour(honourPoints)
+	if(GetHonorCurrency() >= honourPoints) then
+		-- You have enough honour
+		return true
+	else
+		-- You do not have the honour
+		return false
+	end
+end
+
+function EPReagent:CheckArena(arenaPoints)
+	if(GetArenaCurrency() >= arenaPoints) then
+		-- You have enough arena points
+		return true
+	else
+		-- You do not have the arena points
+		return false
+	end
+end
+
+function EPReagent:CheckItemCostItem(itemLink, amount)
+	local availableItemLink = GetItemCount(itemLink)
+
+	if(availableItemLink >= amount) then
+		-- You have enough of this item
+		return true
+	else
+		-- You do not have enough of this item
+		return false
+	end
 end
 
 function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
@@ -22,36 +57,8 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	-- vendor does not sell the item, quit out
 	if itemName ~= reagentName then return end
 
-	local itemLink = GetMerchantItemLink(counter)
-
 	-- quit out for now, might add something about this later
 	if not isUsable then return end
-
-	if extendedCost then
-
-		-- purchase of items with other currency is not supported, quit out
-		self:MessageOutput("Purchase using alternative currency is not currently supported")
-		return
-
----- DEBUG ----
---[[
-		local itemValue, eCostItemLink, availableItemLink
-		local honorPoints, arenaPoints, itemCount = GetMerchantItemCostInfo(counter)
-		local myHonorPoints = GetHonorCurrency()
-		local myArenaPoints = GetArenaCurrency()
-
-		self:MessageOutput(string.format("Extended item cost is %d honor points, %d arena points and %d other currencies", honorPoints, arenaPoints, itemCount))
-		self:MessageOutput(string.format("User has %d honor points and %d arena points", myHonorPoints, myArenaPoints))
-
-		if itemCount then
-			for i = 1, itemCount do
-				_, itemValue, eCostItemLink = GetMerchantItemCostItem(counter, i)
-				availableItemLink = GetItemCount(eCostItemLink)
-				self:MessageOutput(string.format("Other Currency %d is : %d of %s, user has %d available", i, itemValue, eCostItemLink, availableItemLink))
-			end
-		end
-]]--
-	end
 
 	-- re-evaluate the number needed depending upon how many are sold in a batch
 	local revisedQuantity = math.floor(quantityNeeded / quantity)
@@ -67,23 +74,67 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	-- we require less than 1 batch so quit
 	if revisedQuantity < 1 then return end
 
+	if extendedCost then
+
+		local itemValue, eCostItemLink
+		local honorPoints, arenaPoints, itemCount = GetMerchantItemCostInfo(counter)
+
+		if(honorPoints > 0) then
+			if(self:CheckHonour(honorPoints * revisedQuantity) == true) then
+				self:MessageOutput("you have enough honour points")
+			else
+				self:MessageOutput("you DO NOT have enough honour points")
+			end
+		else
+			self:MessageOutput("no honour points required")
+		end
+
+		if(arenaPoints > 0) then
+			if(self:CheckArena(arenaPoints * revisedQuantity) == true) then
+				self:MessageOutput("you have enough arena points")
+			else
+				self:MessageOutput("you DO NOT have enough arena points")
+			end
+		else
+			self:MessageOutput("no arena points required")
+		end
+
+		if itemCount and itemCount > 0 then
+			for i = 1, itemCount do
+				_, itemValue, eCostItemLink = GetMerchantItemCostItem(counter, i)
+
+				if(self:CheckItemCostItem(eCostItemLink, itemValue * revisedQuantity) == true) then
+					self:MessageOutput(string.format("you have enough %s", eCostItemLink))
+				else
+					self:MessageOutput(string.format("you DO NOT have enough %s", eCostItemLink))
+				end
+			end
+		end
+
+		-- purchase of items with other currency is not supported, quit out
+		self:MessageOutput("Purchase using alternative currency is not currently supported")
+		return
+	end
+
 	-- calculate total cost of resupply
 	local totalCost = price * revisedQuantity
 
 	-- check how much money we have
 	local gold = GetMoney()
 
+	local itemLink = GetMerchantItemLink(counter)
+
 	if totalCost > gold then
 		-- we cannot afford the full cost, print message and quit out
-		self:MessageOutput("Cannot afford to purchase required " .. itemLink .. "!")
+		self:MessageOutput(string.format("Cannot afford to purchase required %s!", itemLink))
 		return
 	else
 		-- format the output string depending upon user selected Colour Blind Mode
 		local moneyString
 		if (GetCVar("colorblindMode") == "0") then
-			moneyString = GetCoinTextureString(rawAmount)
+			moneyString = GetCoinTextureString(totalCost)
 		else
-			moneyString = GetCoinText(rawAmount)
+			moneyString = GetCoinText(totalCost)
 		end
 
 		-- we can afford to restock reagents
@@ -119,20 +170,27 @@ function EPReagent:CheckSupplies(id, count)
 	self:RestockFromVendor(name, stack, requiredAmount)
 end
 
-function EPReagent:RestockMe()
-	local playerName, _ = UnitName("player")
+function EPReagent:MERCHANT_SHOW(event)
 
-	-- hmmm, using strings for indexing a table...I'm nasty
-	local test = EPReagentPlayerTable[playerName]
-
-	-- we have found data for your character
-	if test then
-		for i = 1, # test do
-			self:CheckSupplies(test[i].item, test[i].amount)
+	-- we have data for your character
+	if playerTable then
+		for i = 1, # playerTable do
+			self:CheckSupplies(playerTable[i].item, playerTable[i].amount)
 		end
 	end
 end
 
+function EPReagent:PLAYER_LOGIN(event)
+	local playerName, _ = UnitName("player")
+
+	-- hmmm, using strings for indexing a table...I'm nasty
+	playerTable = EPReagentPlayerTable[playerName]
+
+	EPReagentPlayerTable = nil
+
+	self:UnregisterEvent("PLAYER_LOGIN")
+end
+
 EPReagent:SetScript("OnEvent", function(self, event, ...)
-	self:RestockMe()
+	self[event](self, event, ...)
 end)
