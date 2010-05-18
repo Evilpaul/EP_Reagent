@@ -8,46 +8,19 @@ function EPReagent:MessageOutput(inputMessage)
 	ChatFrame1:AddMessage(string.format("|cffDAFF8A[Reagent]|r %s", inputMessage))
 end
 
-function EPReagent:CheckHonour(honourPoints)
-	if(GetHonorCurrency() >= honourPoints) then
-		-- You have enough honour
-		return true
-	else
-		-- You do not have the honour
-		return false
-	end
-end
 
-function EPReagent:CheckArena(arenaPoints)
-	if(GetArenaCurrency() >= arenaPoints) then
-		-- You have enough arena points
-		return true
-	else
-		-- You do not have the arena points
-		return false
-	end
-end
 
-function EPReagent:CheckItemCostItem(itemLink, amount)
-	local availableItemLink = GetItemCount(itemLink)
 
-	if(availableItemLink >= amount) then
-		-- You have enough of this item
-		return true
-	else
-		-- You do not have enough of this item
-		return false
-	end
 end
 
 function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
+	local itemName, price, quantity, numAvailable, isUsable
 	local counter = 1
-	local itemName, price, quantity, numAvailable, isUsable, extendedCost
 
 	local soldItems = GetMerchantNumItems()
 
 	while counter <= soldItems do
-		itemName, _, price, quantity, numAvailable, isUsable, extendedCost = GetMerchantItemInfo(counter)
+		itemName, _, price, quantity, numAvailable, isUsable, _ = GetMerchantItemInfo(counter)
 
 		if itemName == reagentName then break end -- found it, break out of the loop
 
@@ -73,48 +46,6 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 
 	-- we require less than 1 batch so quit
 	if revisedQuantity < 1 then return end
-
-	if extendedCost then
-
-		local itemValue, eCostItemLink
-		local honorPoints, arenaPoints, itemCount = GetMerchantItemCostInfo(counter)
-
-		if(honorPoints > 0) then
-			if(self:CheckHonour(honorPoints * revisedQuantity) == true) then
-				self:MessageOutput("you have enough honour points")
-			else
-				self:MessageOutput("you DO NOT have enough honour points")
-			end
-		else
-			self:MessageOutput("no honour points required")
-		end
-
-		if(arenaPoints > 0) then
-			if(self:CheckArena(arenaPoints * revisedQuantity) == true) then
-				self:MessageOutput("you have enough arena points")
-			else
-				self:MessageOutput("you DO NOT have enough arena points")
-			end
-		else
-			self:MessageOutput("no arena points required")
-		end
-
-		if itemCount and itemCount > 0 then
-			for i = 1, itemCount do
-				_, itemValue, eCostItemLink = GetMerchantItemCostItem(counter, i)
-
-				if(self:CheckItemCostItem(eCostItemLink, itemValue * revisedQuantity) == true) then
-					self:MessageOutput(string.format("you have enough %s", eCostItemLink))
-				else
-					self:MessageOutput(string.format("you DO NOT have enough %s", eCostItemLink))
-				end
-			end
-		end
-
-		-- purchase of items with other currency is not supported, quit out
-		self:MessageOutput("Purchase using alternative currency is not currently supported")
-		return
-	end
 
 	-- calculate total cost of resupply
 	local totalCost = price * revisedQuantity
