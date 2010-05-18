@@ -1,24 +1,23 @@
-local EPReagent = CreateFrame("Frame")
-EPReagent:RegisterEvent("MERCHANT_SHOW")
-EPReagent:RegisterEvent("PLAYER_LOGIN")
+local _, ns = ...
+
+local format = string.format
+local floor = math.floor
+
+local EPReagent = CreateFrame('Frame')
+EPReagent:RegisterEvent('MERCHANT_SHOW')
+EPReagent:RegisterEvent('PLAYER_LOGIN')
 
 local playerTable = {}
 
 function EPReagent:MessageOutput(inputMessage)
-	ChatFrame1:AddMessage(string.format("|cffDAFF8A[Reagent]|r %s", inputMessage))
-end
-
-
-
-
+	ChatFrame1:AddMessage(format('|cffDAFF8A[Reagent]|r %s', inputMessage))
 end
 
 function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	local itemName, price, quantity, numAvailable, isUsable
-	local counter = 1
-
 	local soldItems = GetMerchantNumItems()
 
+	local counter = 1
 	while counter <= soldItems do
 		itemName, _, price, quantity, numAvailable, isUsable, _ = GetMerchantItemInfo(counter)
 
@@ -34,14 +33,13 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	if not isUsable then return end
 
 	-- re-evaluate the number needed depending upon how many are sold in a batch
-	local revisedQuantity = math.floor(quantityNeeded / quantity)
+	local revisedQuantity = floor(quantityNeeded / quantity)
 	-- re-evaluate the number per stack depending upon how many are sold in a batch
-	local revisedStack = math.floor(stack / quantity)
+	local revisedStack = floor(stack / quantity)
 
-	if numAvailable ~= -1 then -- limited number available
-		if numAvailable < revisedQuantity then -- fewer available than required
-			revisedQuantity = numAvailable
-		end
+	if numAvailable ~= -1 and -- limited number available
+	   numAvailable < revisedQuantity then -- fewer available than required
+	   	revisedQuantity = numAvailable
 	end
 
 	-- we require less than 1 batch so quit
@@ -57,19 +55,19 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 
 	if totalCost > gold then
 		-- we cannot afford the full cost, print message and quit out
-		self:MessageOutput(string.format("Cannot afford to purchase required %s!", itemLink))
+		self:MessageOutput(format('Cannot afford to purchase required %s!', itemLink))
 		return
 	else
 		-- format the output string depending upon user selected Colour Blind Mode
 		local moneyString
-		if (GetCVar("colorblindMode") == "0") then
+		if (GetCVar('colorblindMode') == '0') then
 			moneyString = GetCoinTextureString(totalCost)
 		else
 			moneyString = GetCoinText(totalCost)
 		end
 
 		-- we can afford to restock reagents
-		self:MessageOutput(string.format("Purchasing %s worth of %s", moneyString, itemLink))
+		self:MessageOutput(format('Purchasing %s worth of %s', moneyString, itemLink))
 	end
 
 	-- we need more than a stack
@@ -84,16 +82,14 @@ function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
 	end
 end
 
-function EPReagent:CheckSupplies(id, count)
-	local name, stack, currentAmount, requiredAmount
-	name, _, _, _, _, _, _, stack, _, _ = GetItemInfo(id)
+function EPReagent:CheckSupplies(package)
+	local name, _, _, _, _, _, _, stack, _, _ = GetItemInfo(package.item)
 
 	-- may not have the item in cache yet, or might have gotten wrong ID
 	if not name then return end
 
 	-- Check how many we need to buy
-	currentAmount = GetItemCount(id)
-	requiredAmount = count - currentAmount
+	local requiredAmount = package.amount - GetItemCount(package.item)
 
 	-- none needed so quit out
 	if requiredAmount < 1 then return end
@@ -102,26 +98,21 @@ function EPReagent:CheckSupplies(id, count)
 end
 
 function EPReagent:MERCHANT_SHOW(event)
-
-	-- we have data for your character
-	if playerTable then
-		for i = 1, # playerTable do
-			self:CheckSupplies(playerTable[i].item, playerTable[i].amount)
-		end
+	for i = 1, # playerTable do
+		self:CheckSupplies(playerTable[i])
 	end
 end
 
 function EPReagent:PLAYER_LOGIN(event)
-	local playerName, _ = UnitName("player")
+	local playerName, _ = UnitName('player')
 
-	-- hmmm, using strings for indexing a table...I'm nasty
-	playerTable = EPReagentPlayerTable[playerName]
+	playerTable = ns.config[playerName] or {}
 
-	EPReagentPlayerTable = nil
+	ns.config = nil
 
-	self:UnregisterEvent("PLAYER_LOGIN")
+	self:UnregisterEvent('PLAYER_LOGIN')
 end
 
-EPReagent:SetScript("OnEvent", function(self, event, ...)
+EPReagent:SetScript('OnEvent', function(self, event, ...)
 	self[event](self, event, ...)
 end)
