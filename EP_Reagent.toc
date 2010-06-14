@@ -3,6 +3,8 @@
 ## Notes: Automatically restock reagents
 ## Author: EvilPaul
 ## Version: 1.3
+## LoadManagers: AddonLoader
+## X-LoadOn-Always: delayed
 
 config.lua
 EP_Reagent.lua
