@@ -5,12 +5,10 @@ local floor = math.floor
 
 local EPReagent = CreateFrame('Frame')
 EPReagent:RegisterEvent('MERCHANT_SHOW')
-EPReagent:RegisterEvent('PLAYER_LOGIN')
-
-local playerTable = {}
+EPReagent:RegisterEvent('ADDON_LOADED')
 
 function EPReagent:MessageOutput(inputMessage)
-	ChatFrame1:AddMessage(format('|cffDAFF8A[Reagent]|r %s', inputMessage))
+	DEFAULT_CHAT_FRAME:AddMessage(format('|cffDAFF8A[Reagent]|r %s', inputMessage))
 end
 
 function EPReagent:RestockFromVendor(reagentName, stack, quantityNeeded)
@@ -98,19 +96,21 @@ function EPReagent:CheckSupplies(package)
 end
 
 function EPReagent:MERCHANT_SHOW(event)
-	for i = 1, # playerTable do
-		self:CheckSupplies(playerTable[i])
+	for i = 1, #self.playerTable do
+		self:CheckSupplies(self.playerTable[i])
 	end
 end
 
-function EPReagent:PLAYER_LOGIN(event)
-	local playerName, _ = UnitName('player')
+function EPReagent:ADDON_LOADED(event, name)
+	if name == 'EP_Reagent' then
+		local playerName, _ = UnitName('player')
 
-	playerTable = ns.config[playerName] or {}
+		self.playerTable = ns.config[playerName] or {}
 
-	ns.config = nil
+		ns.config = nil
 
-	self:UnregisterEvent('PLAYER_LOGIN')
+		self:UnregisterEvent('ADDON_LOADED')
+	end
 end
 
 EPReagent:SetScript('OnEvent', function(self, event, ...)
