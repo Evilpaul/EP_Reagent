@@ -16,6 +16,10 @@ local config = {
 		{['item'] = 17032, ['amount'] = 20},
 		{['item'] = 17031, ['amount'] = 20},
 	},
+	['Evilundead'] = {
+		{['item'] = 40411, ['amount'] = 20},
+		{['item'] = 18256, ['amount'] = 20},
+	},
 }
 ns.config = config
 
