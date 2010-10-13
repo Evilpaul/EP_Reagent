@@ -8,9 +8,6 @@ local config = {
 	['Evilpaul'] = {
 		{['item'] = 44615, ['amount'] = 40},
 	},
-	['Evilbadger'] = {
-		{['item'] = 44605, ['amount'] = 20},
-	},
 	['Evilmagic'] = {
 		{['item'] = 17020, ['amount'] = 100},
 		{['item'] = 17032, ['amount'] = 20},
